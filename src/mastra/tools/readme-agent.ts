@@ -1,13 +1,10 @@
-// tools/get-repo-details.ts
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import axios from "axios";
 
 const GITHUB_API = "https://api.github.com";
 
-// ---------------------------------------------------------------------
 // Helper: fetch a raw file from GitHub (public repos only, no auth needed)
-// ---------------------------------------------------------------------
 async function fetchFile(
   owner: string,
   repo: string,
@@ -24,9 +21,7 @@ async function fetchFile(
   }
 }
 
-// ---------------------------------------------------------------------
 // Main tool
-// ---------------------------------------------------------------------
 export const getRepoDetailsTool = createTool({
   id: "get-repo-details",
   description: "Fetch metadata + key files from a public GitHub repository",
@@ -54,16 +49,16 @@ export const getRepoDetailsTool = createTool({
   execute: async ({ context }) => {
     const { repoUrl } = context;
 
-    // ---- 1. Parse owner/repo from URL ----
+    //Parse owner/repo from URL
     const match = repoUrl.match(/github\.com[\/:]([^\/]+)\/([^\/]+?)(\.git)?$/);
     if (!match) throw new Error("Invalid GitHub URL");
     const [, owner, repo] = match;
 
-    // ---- 2. Repo metadata (public, no token required) ----
+    //Repo metadata
     const repoRes = await axios.get(`${GITHUB_API}/repos/${owner}/${repo}`);
     const repoData = repoRes.data;
 
-    // ---- 3. Try to fetch an existing README (any case) ----
+    //Try to fetch an existing README
     const possibleReadmes = [
       "README.md",
       "readme.md",
@@ -79,7 +74,7 @@ export const getRepoDetailsTool = createTool({
       }
     }
 
-    // ---- 4. Language-specific manifest files ----
+    // Language-specific manifest files
     const packageJson = await fetchFile(owner, repo, "package.json");
     const pyprojectToml = await fetchFile(owner, repo, "pyproject.toml");
     const cargoToml = await fetchFile(owner, repo, "Cargo.toml");
